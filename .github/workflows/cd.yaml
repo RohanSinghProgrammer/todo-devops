@@ -26,17 +26,14 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Deploy Container
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Run Blue-Green Deployment with Automated Rollback
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: todo-app
+          IMAGE_TAG: ${{ github.event.workflow_run.head_sha || 'latest' }}
         run: |
-          # Pull the latest image
-          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          
-          # Stop and remove existing container if it exists
-          docker stop todo-app || true
-          docker rm todo-app || true
-          
-          # Run the new container
-          docker run -d --name todo-app -p 80:8080 --restart unless-stopped $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          chmod +x ./todo-app/scripts/deploy-blue-green.sh
+          ./todo-app/scripts/deploy-blue-green.sh
