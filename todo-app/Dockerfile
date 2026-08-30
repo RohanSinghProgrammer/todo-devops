@@ -1,5 +1,5 @@
 # Stage 1: Build the React application
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 # Set the working directory
 WORKDIR /app
@@ -18,6 +18,11 @@ RUN npm run build
 
 # Stage 2: Serve the application with NGINX (Unprivileged for Security)
 FROM nginxinc/nginx-unprivileged:alpine-slim
+
+USER root
+# Upgrade all base packages to patch security vulnerabilities (e.g. OpenSSL/libcrypto3/libssl3)
+RUN apk update && apk upgrade --no-cache && rm -rf /var/cache/apk/*
+USER 101
 
 # Copy the built assets from the builder stage to NGINX's serve directory
 COPY --from=builder /app/dist /usr/share/nginx/html
