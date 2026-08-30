@@ -20,8 +20,8 @@ RUN npm run build
 FROM nginxinc/nginx-unprivileged:alpine-slim
 
 USER root
-# Upgrade all base packages to patch security vulnerabilities (e.g. OpenSSL/libcrypto3/libssl3)
-RUN apk update && apk upgrade --no-cache && rm -rf /var/cache/apk/*
+# Upgrade all base packages and install wget for container healthcheck
+RUN apk update && apk upgrade --no-cache && apk add --no-cache wget && rm -rf /var/cache/apk/*
 USER 101
 
 # Copy the built assets from the builder stage to NGINX's serve directory
@@ -32,7 +32,7 @@ EXPOSE 8080
 
 # Add a healthcheck to ensure the container is running correctly
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://localhost:8080/ || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:8080/ || exit 1
 
 # Start NGINX server
 CMD ["nginx", "-g", "daemon off;"]
