@@ -10,6 +10,7 @@ ECR_REPOSITORY="${ECR_REPOSITORY:-todo-app}"
 IMAGE_TAG="${IMAGE_TAG:-latest}"
 HEALTHCHECK_MAX_RETRIES="${HEALTHCHECK_MAX_RETRIES:-15}"
 HEALTHCHECK_INTERVAL_SECS="${HEALTHCHECK_INTERVAL_SECS:-2}"
+HOST_PORT="${HOST_PORT:-3000}"
 
 if [ -z "$ECR_REGISTRY" ]; then
   FULL_IMAGE="${ECR_REPOSITORY}:${IMAGE_TAG}"
@@ -25,6 +26,7 @@ mkdir -p "$CONF_DIR"
 echo "=================================================="
 echo " Starting Blue-Green Deployment"
 echo " Image: $FULL_IMAGE"
+echo " Host Port: $HOST_PORT (Internal)"
 echo "=================================================="
 
 # 1. Ensure Docker bridge network exists
@@ -113,26 +115,26 @@ if [ "$HEALTHY" = true ]; then
   echo "Target slot is healthy! Updating proxy configuration..."
   generate_proxy_conf "$TARGET_SLOT"
 
-  # Ensure proxy container is running with mounted config
+  # Ensure proxy container is running with mounted config on HOST_PORT
   PROXY_RUNNING=$(docker ps --filter "name=^${PROXY_CONTAINER}$" --filter "status=running" -q)
   if [ -z "$PROXY_RUNNING" ]; then
-    echo "Bootstrapping $PROXY_CONTAINER on port 80..."
+    echo "Bootstrapping $PROXY_CONTAINER on 127.0.0.1:$HOST_PORT..."
 
-    # Stop and remove any legacy standalone container (e.g., 'todo-app') binding port 80
+    # Stop and remove any legacy standalone container (e.g., 'todo-app')
     if docker ps -a --filter "name=^todo-app$" -q | grep -q .; then
-      echo "Cleaning up legacy container 'todo-app' bound to port 80..."
+      echo "Cleaning up legacy container 'todo-app'..."
       docker stop todo-app >/dev/null 2>&1 || true
       docker rm todo-app >/dev/null 2>&1 || true
     fi
 
-    # Clean up any non-running proxy container before recreation
+    # Clean up any stopped proxy container
     docker stop "$PROXY_CONTAINER" >/dev/null 2>&1 || true
     docker rm "$PROXY_CONTAINER" >/dev/null 2>&1 || true
 
     docker run -d \
       --name "$PROXY_CONTAINER" \
       --network "$NETWORK_NAME" \
-      -p 80:80 \
+      -p "127.0.0.1:${HOST_PORT}:80" \
       -v "$CONF_DIR:/etc/nginx/conf.d:ro" \
       --restart unless-stopped \
       nginx:alpine-slim
