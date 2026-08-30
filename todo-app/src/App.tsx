@@ -6,9 +6,9 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Trash2 } from 'lucide-react'
 
 interface Todo {
-  id: string;
-  text: string;
-  completed: boolean;
+  id: string
+  text: string
+  completed: boolean
 }
 
 function App() {
@@ -21,20 +21,18 @@ function App() {
     const newTodo: Todo = {
       id: crypto.randomUUID(),
       text: inputValue.trim(),
-      completed: false
+      completed: false,
     }
     setTodos([...todos, newTodo])
     setInputValue('')
   }
 
   const toggleTodo = (id: string) => {
-    setTodos(todos.map(todo =>
-      todo.id === id ? { ...todo, completed: !todo.completed } : todo
-    ))
+    setTodos(todos.map((todo) => (todo.id === id ? { ...todo, completed: !todo.completed } : todo)))
   }
 
   const deleteTodo = (id: string) => {
-    setTodos(todos.filter(todo => todo.id !== id))
+    setTodos(todos.filter((todo) => todo.id !== id))
   }
 
   return (
@@ -59,27 +57,27 @@ function App() {
             {todos.length === 0 ? (
               <p className="text-center text-slate-500 py-4">No tasks yet. Add one above!</p>
             ) : (
-              todos.map(todo => (
-                <div 
-                  key={todo.id} 
+              todos.map((todo) => (
+                <div
+                  key={todo.id}
                   className="flex items-center justify-between p-3 border rounded-lg bg-white shadow-sm transition-all hover:shadow-md"
                 >
                   <div className="flex items-center gap-3">
-                    <Checkbox 
-                      checked={todo.completed} 
+                    <Checkbox
+                      checked={todo.completed}
                       onCheckedChange={() => toggleTodo(todo.id)}
                       id={todo.id}
                     />
-                    <label 
+                    <label
                       htmlFor={todo.id}
                       className={`text-sm font-medium leading-none cursor-pointer ${todo.completed ? 'line-through text-slate-400' : 'text-slate-700'}`}
                     >
                       {todo.text}
                     </label>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => deleteTodo(todo.id)}
                     className="text-red-500 hover:text-red-700 hover:bg-red-50"
                   >
