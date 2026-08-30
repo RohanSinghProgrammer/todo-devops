@@ -1,9 +1,13 @@
+resource "aws_lightsail_key_pair" "app_key" {
+  name = "${var.instance_name}-key"
+}
+
 resource "aws_lightsail_instance" "app" {
   name              = var.instance_name
   availability_zone = var.availability_zone
   blueprint_id      = var.blueprint_id
   bundle_id         = var.bundle_id
-  key_pair_name     = var.key_pair_name
+  key_pair_name     = aws_lightsail_key_pair.app_key.name
 
   user_data = <<-EOF
               #!/bin/bash
@@ -32,7 +36,7 @@ resource "aws_lightsail_instance_public_ports" "app_ports" {
     from_port = 80
     to_port   = 80
   }
-  
+
   port_info {
     protocol  = "tcp"
     from_port = 22

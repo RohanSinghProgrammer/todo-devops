@@ -1,4 +1,11 @@
 terraform {
+  backend "s3" {
+    bucket  = "rohan-todo-devops-infra-remote-backend"
+    key     = "prod/terraform.tfstate"
+    region  = "ap-south-1"
+    encrypt = true
+  }
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -26,5 +33,4 @@ module "lightsail" {
   source            = "../../modules/lightsail"
   instance_name     = "todo-app-prod"
   availability_zone = "${var.aws_region}a"
-  key_pair_name     = var.key_pair_name
 }
