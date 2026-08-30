@@ -24,6 +24,9 @@ USER root
 RUN apk update && apk upgrade --no-cache && apk add --no-cache wget && rm -rf /var/cache/apk/*
 USER 101
 
+# Copy custom NGINX configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 # Copy the built assets from the builder stage to NGINX's serve directory
 COPY --from=builder /app/dist /usr/share/nginx/html
 
@@ -32,7 +35,7 @@ EXPOSE 8080
 
 # Add a healthcheck to ensure the container is running correctly
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:8080/ || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:8080/health || exit 1
 
 # Start NGINX server
 CMD ["nginx", "-g", "daemon off;"]
