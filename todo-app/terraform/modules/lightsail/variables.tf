@@ -10,6 +10,6 @@ variable "blueprint_id" {
 }
 variable "bundle_id" {
   type    = string
-  default = "nano_3_1"
+  default = "micro_3_1"
 }
 
