@@ -48,7 +48,7 @@ elif [ -n "$BLUE_RUNNING" ] && [ -n "$GREEN_RUNNING" ]; then
   ACTIVE_SLOT="blue"
   TARGET_SLOT="green"
 else
-  # Cold start / initial deployment
+  # Cold start / initial deployment / migration from legacy container
   ACTIVE_SLOT=""
   TARGET_SLOT="blue"
 fi
@@ -116,9 +116,19 @@ if [ "$HEALTHY" = true ]; then
   # Ensure proxy container is running with mounted config
   PROXY_RUNNING=$(docker ps --filter "name=^${PROXY_CONTAINER}$" --filter "status=running" -q)
   if [ -z "$PROXY_RUNNING" ]; then
-    echo "Starting $PROXY_CONTAINER on port 80..."
+    echo "Bootstrapping $PROXY_CONTAINER on port 80..."
+
+    # Stop and remove any legacy standalone container (e.g., 'todo-app') binding port 80
+    if docker ps -a --filter "name=^todo-app$" -q | grep -q .; then
+      echo "Cleaning up legacy container 'todo-app' bound to port 80..."
+      docker stop todo-app >/dev/null 2>&1 || true
+      docker rm todo-app >/dev/null 2>&1 || true
+    fi
+
+    # Clean up any non-running proxy container before recreation
     docker stop "$PROXY_CONTAINER" >/dev/null 2>&1 || true
     docker rm "$PROXY_CONTAINER" >/dev/null 2>&1 || true
+
     docker run -d \
       --name "$PROXY_CONTAINER" \
       --network "$NETWORK_NAME" \
