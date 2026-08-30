@@ -1,9 +1,9 @@
 name: CI - Build and Push to ECR
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
+    branches: [ "main" ]
+  push:
     branches: [ "main" ]
 
 permissions:
@@ -73,6 +73,7 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
       - name: Push image to Amazon ECR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: todo-app
