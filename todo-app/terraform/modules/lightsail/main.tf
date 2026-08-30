@@ -11,6 +11,14 @@ resource "aws_lightsail_instance" "app" {
 
   user_data = <<-EOF
               #!/bin/bash
+              # Setup 2GB Swap Memory
+              fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=2048
+              chmod 600 /swapfile
+              mkswap /swapfile
+              swapon /swapfile
+              echo '/swapfile none swap sw 0 0' >> /etc/fstab
+
+              # Install Docker
               apt-get update
               apt-get install -y docker.io
               systemctl start docker
