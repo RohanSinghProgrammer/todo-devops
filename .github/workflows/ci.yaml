@@ -20,21 +20,25 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
+          cache-dependency-path: './todo-app/package-lock.json'
 
       - name: Install dependencies
+        working-directory: ./todo-app
         run: npm ci
 
       - name: Run Linter
+        working-directory: ./todo-app
         run: npm run lint
 
       - name: Check Formatting (Prettier)
+        working-directory: ./todo-app
         run: npx prettier --check .
 
       - name: OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: 'todo-app'
-          path: '.'
+          path: './todo-app'
           format: 'HTML'
 
       - name: Configure AWS credentials
@@ -48,6 +52,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build and tag Docker image
+        working-directory: ./todo-app
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: todo-app
