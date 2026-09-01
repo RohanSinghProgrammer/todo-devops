@@ -1,0 +1,48 @@
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Private Keys, Certificates & Credentials (NEVER COMMIT)
+*.pem
+*.key
+*.cer
+*.crt
+*.pfx
+*.p12
+lightsail_key.pem
+id_rsa*
+id_ed25519*
+**/*.pem
+**/*.key
+
+# Environment variables & secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Dependencies & Build artifacts
+node_modules/
+dist/
+build/
+coverage/
+
+# Logs
+logs/
+*.log
