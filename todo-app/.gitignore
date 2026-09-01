@@ -37,3 +37,14 @@ override.tf.json
 *_override.tf.json
 .terraformrc
 terraform.rc
+
+# Private Keys & Certificates (DO NOT COMMIT)
+*.pem
+*.key
+*.cer
+*.crt
+*.pfx
+*.p12
+lightsail_key.pem
+id_rsa*
+id_ed25519*
