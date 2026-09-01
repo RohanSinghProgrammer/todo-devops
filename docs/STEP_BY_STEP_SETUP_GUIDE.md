@@ -14,6 +14,7 @@ This guide walks through deploying the **Todo DevOps Project** from scratch on *
 7. [Triggering CI/CD & Deploying](#7-triggering-cicd--deploying)
 8. [Testing Zero-Downtime Blue-Green Deployment & Rollback](#8-testing-zero-downtime-blue-green-deployment--rollback)
 9. [Troubleshooting & Verification](#9-troubleshooting--verification)
+10. [Project Teardown & Cleanup](#10-project-teardown--cleanup)
 
 ---
 
@@ -331,3 +332,11 @@ curl -i http://127.0.0.1:3000/health
 sudo systemctl status nginx
 sudo journalctl -u nginx -n 50 --no-pager
 ```
+
+---
+
+## 10. Project Teardown & Cleanup
+
+When you are done testing or want to completely destroy all cloud resources to prevent any ongoing AWS billing, follow our dedicated teardown guide:
+
+👉 **[Complete Project Cleanup & Teardown Guide](PROJECT_CLEANUP_GUIDE.md)**

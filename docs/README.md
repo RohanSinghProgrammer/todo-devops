@@ -8,6 +8,7 @@ Welcome to the **Todo DevOps Project** documentation hub. This repository contai
 
 - **[System Architecture & Infrastructure Overview](ARCHITECTURE.md)**: Detailed breakdown of the cloud infrastructure, network topology, security model, and Mermaid flow diagrams.
 - **[End-to-End Setup & Deployment Guide](STEP_BY_STEP_SETUP_GUIDE.md)**: Step-by-step instructions for provisioning the infrastructure from scratch, setting up remote state, configuring GitHub Secrets, installing self-hosted runners, and securing custom domains with Let's Encrypt SSL.
+- **[Project Cleanup & Teardown Guide](PROJECT_CLEANUP_GUIDE.md)**: Step-by-step teardown instructions to destroy all AWS infrastructure, remove runners, delete state buckets, and verify a zero-cost footprint.
 
 ---
 
