@@ -39,7 +39,7 @@ function App() {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-xl border-0">
         <CardHeader className="bg-slate-900 text-white rounded-t-xl">
-          <CardTitle className="text-2xl text-center font-bold">Todo List</CardTitle>
+          <CardTitle className="text-2xl text-center font-bold">Todo List Updated</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <form onSubmit={addTodo} className="flex gap-2 mb-6">
