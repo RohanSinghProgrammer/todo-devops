@@ -39,8 +39,8 @@ This guide covers how to set up the Nginx reverse proxy on your server for the T
 
 ## DNS and SSL (HTTPS)
 
-- **DNS**: Make sure you have configured your domain's DNS records (A Record) to point `todo.utilsfirst.com` to your server's public IP address.
+- **DNS**: Make sure you have configured your domain's DNS records (A Record) to point `<YOUR_DOMAIN>` (e.g. `todo.yourdomain.com`) to your server's public IP address.
 - **SSL (HTTPS)**: Once the site is accessible via HTTP, it is highly recommended to secure it with HTTPS. If you have Certbot installed, you can automate this by running:
   ```bash
-  sudo certbot --nginx -d todo.utilsfirst.com
+  sudo certbot --nginx -d <YOUR_DOMAIN>
   ```
