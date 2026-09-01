@@ -31,9 +31,10 @@ Before you begin, ensure you have the following installed and configured:
 | **Custom Domain** | Any DNS provider (Cloudflare, Route53, Namecheap, etc.) | SSL & subdomain routing |
 
 ### Clone the Repository
+Clone your repository (or fork) to your local machine:
 ```bash
-git clone https://github.com/RohanSinghProgrammer/todo-devops.git
-cd todo-devops
+git clone https://github.com/<YOUR_GITHUB_USERNAME>/<YOUR_REPO_NAME>.git
+cd <YOUR_REPO_NAME>
 ```
 
 ---
@@ -43,14 +44,15 @@ cd todo-devops
 Terraform stores its state in an encrypted S3 bucket to allow collaboration and prevent state corruption.
 
 ### 2.1 Create S3 State Bucket
-Choose a globally unique bucket name (e.g., `my-todo-infra-tfstate-<your-name>`):
+Choose a **globally unique** bucket name (e.g., `my-todo-infra-tfstate-<unique-suffix>`):
 
 ```bash
-# Set your preferred AWS Region
-export AWS_REGION="ap-south-1"
-export BUCKET_NAME="rohan-todo-devops-infra-remote-backend"
+# Set your preferred AWS Region and globally unique bucket name
+export AWS_REGION="<YOUR_AWS_REGION>" # e.g. ap-south-1 or us-east-1
+export BUCKET_NAME="<YOUR_UNIQUE_S3_BUCKET_NAME>"
 
 # Create the S3 bucket
+# (Note: Omit --create-bucket-configuration if using us-east-1)
 aws s3api create-bucket \
   --bucket "$BUCKET_NAME" \
   --region "$AWS_REGION" \
@@ -79,13 +81,13 @@ aws s3api put-public-access-block \
 ```
 
 ### 2.2 Configure Terraform Backend
-Verify the bucket name matches in `todo-app/terraform/environments/prod/main.tf`:
+Update the backend configuration in `todo-app/terraform/environments/prod/main.tf` with your bucket name and region:
 ```hcl
 terraform {
   backend "s3" {
-    bucket  = "rohan-todo-devops-infra-remote-backend"
+    bucket  = "<YOUR_UNIQUE_S3_BUCKET_NAME>"
     key     = "prod/terraform.tfstate"
-    region  = "ap-south-1"
+    region  = "<YOUR_AWS_REGION>"
     encrypt = true
   }
 }
@@ -103,8 +105,8 @@ Terraform provisions:
 ### 3.1 Update Variables
 Edit `todo-app/terraform/environments/prod/terraform.tfvars`:
 ```hcl
-github_repository = "YOUR_GITHUB_USERNAME/YOUR_REPO_NAME"
-aws_region        = "ap-south-1"
+github_repository = "<YOUR_GITHUB_USERNAME>/<YOUR_REPO_NAME>"
+aws_region        = "<YOUR_AWS_REGION>" # e.g. ap-south-1
 ```
 
 ### 3.2 Initialize & Apply Terraform
@@ -122,11 +124,11 @@ terraform apply -auto-approve
 ```
 
 ### 3.3 Save Terraform Outputs
-Upon completion, Terraform will output:
+Upon completion, Terraform will output values like:
 ```text
-ecr_repository_url    = "597936860349.dkr.ecr.ap-south-1.amazonaws.com/todo-app"
-github_role_arn       = "arn:aws:iam::597936860349:role/github-actions-deploy-role"
-lightsail_public_ip   = "13.235.xxx.xxx"
+ecr_repository_url    = "<YOUR_AWS_ACCOUNT_ID>.dkr.ecr.<YOUR_AWS_REGION>.amazonaws.com/todo-app"
+github_role_arn       = "arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/github-actions-deploy-role"
+lightsail_public_ip   = "<LIGHTSAIL_PUBLIC_IP>"
 ```
 Keep these values handy for the next steps.
 
@@ -141,8 +143,8 @@ Add the following two secrets:
 
 | Secret Name | Value | Description |
 | :--- | :--- | :--- |
-| `AWS_OIDC_ROLE_ARN` | `arn:aws:iam::...:role/github-actions-deploy-role` | Value from Terraform output `github_role_arn` |
-| `AWS_REGION` | `ap-south-1` | Your AWS region |
+| `AWS_OIDC_ROLE_ARN` | `arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/github-actions-deploy-role` | Value from Terraform output `github_role_arn` |
+| `AWS_REGION` | `<YOUR_AWS_REGION>` | Your AWS region (e.g. `ap-south-1`) |
 
 > [!NOTE]
 > Because we use OpenID Connect (OIDC), you **never** need to store permanent `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` secrets in GitHub!
@@ -166,7 +168,7 @@ ssh -i lightsail_key.pem ubuntu@<LIGHTSAIL_PUBLIC_IP>
 
 ### 5.2 Install the GitHub Actions Runner
 1. In GitHub, go to: **Settings $\rightarrow$ Actions $\rightarrow$ Runners $\rightarrow$ New self-hosted runner**.
-2. Select **Linux** and architecture **x64** (or **ARM64** depending on bundle).
+2. Select **Linux** and architecture **x64** (or **ARM64** depending on your instance bundle).
 3. Run the commands on your Lightsail instance:
 
 ```bash
@@ -179,8 +181,8 @@ curl -o actions-runner-linux-x64-2.322.0.tar.gz -L https://github.com/actions/ru
 # Extract
 tar xzf ./actions-runner-linux-x64-2.322.0.tar.gz
 
-# Configure runner (use token from GitHub UI)
-./config.sh --url https://github.com/YOUR_USERNAME/YOUR_REPO --token YOUR_REGISTRATION_TOKEN --unattended
+# Configure runner (replace with your repository and fresh registration token)
+./config.sh --url https://github.com/<YOUR_GITHUB_USERNAME>/<YOUR_REPO_NAME> --token <YOUR_REGISTRATION_TOKEN> --unattended
 
 # Install and start runner as a background system service
 sudo ./svc.sh install
@@ -194,9 +196,9 @@ sudo ./svc.sh start
 Host NGINX listens on ports 80 and 443, handles SSL certificates via Certbot, and forwards traffic to the internal Docker Blue-Green proxy running on `127.0.0.1:3000`.
 
 ### 6.1 Configure DNS A-Record
-In your DNS provider (Cloudflare / Route 53 / GoDaddy):
+In your DNS provider (Cloudflare / Route 53 / Namecheap / GoDaddy):
 - **Type**: `A`
-- **Name / Host**: `todo` (or `@` for root domain)
+- **Name / Host**: `<YOUR_SUBDOMAIN>` (e.g. `todo` or `@` for root domain)
 - **Value / IPv4**: `<LIGHTSAIL_PUBLIC_IP>`
 - **TTL**: Auto / 5 mins
 
@@ -212,13 +214,13 @@ Create `/etc/nginx/sites-available/todo-app`:
 ```bash
 sudo nano /etc/nginx/sites-available/todo-app
 ```
-Paste the following:
+Paste the following (replace `<YOUR_DOMAIN>` with your actual domain, e.g., `todo.yourdomain.com`):
 ```nginx
 server {
     listen 80;
     listen [::]:80;
     
-    server_name todo.utilsfirst.com;
+    server_name <YOUR_DOMAIN>;
 
     access_log /var/log/nginx/todo-app.access.log;
     error_log /var/log/nginx/todo-app.error.log;
@@ -250,7 +252,7 @@ sudo nginx -t
 sudo systemctl reload nginx
 
 # Generate SSL certificate using Let's Encrypt (Certbot)
-sudo certbot --nginx -d todo.utilsfirst.com
+sudo certbot --nginx -d <YOUR_DOMAIN>
 ```
 Follow the interactive prompt to complete SSL generation. Certbot will automatically add HTTPS (port 443) and auto-redirect port 80 to 443.
 
@@ -287,7 +289,7 @@ git push origin main
 3. Watch the GitHub Actions logs.
 4. While the deployment is running, send continuous requests:
    ```bash
-   while true; do curl -s -o /dev/null -w "%{http_code}\n" https://todo.utilsfirst.com; sleep 0.5; done
+   while true; do curl -s -o /dev/null -w "%{http_code}\n" https://<YOUR_DOMAIN>; sleep 0.5; done
    ```
    **Result:** All requests return `200 OK` continuously with **0 failed requests** during traffic migration.
 
@@ -298,7 +300,7 @@ git push origin main
    - Starts new container on idle slot.
    - Polls `/health` endpoint and detects failure.
    - Initiates **Automatic Rollback**: Terminates the unhealthy container candidate.
-   - Active container remains completely untouched and live on `https://todo.utilsfirst.com`.
+   - Active container remains completely untouched and live on `https://<YOUR_DOMAIN>`.
    - CD workflow exits with error code `1` and alerts the team.
 
 ---
@@ -308,7 +310,7 @@ git push origin main
 | Symptom | Cause | Resolution |
 | :--- | :--- | :--- |
 | **`ERR_TIMED_OUT` on HTTPS** | Port 443 blocked in Lightsail firewall | In AWS Lightsail Console $\rightarrow$ Networking $\rightarrow$ Add **HTTPS (Port 443)** to IPv4 firewall. |
-| **`404 Not Found` when accessing IP** | Host NGINX only responds to custom subdomain | Access via `https://todo.utilsfirst.com` or check `server_name` in `/etc/nginx/sites-available/todo-app`. |
+| **`404 Not Found` when accessing IP** | Host NGINX only responds to custom domain | Access via `https://<YOUR_DOMAIN>` or check `server_name` in `/etc/nginx/sites-available/todo-app`. |
 | **`failed to bind host port: address already in use`** | Process conflict on port 80/3000 | Run `sudo ss -tulpn \| grep -E ':80\|:3000'` to identify conflicting PID and terminate it. |
 | **ECR Image Pull Permission Denied** | OIDC Role ARN mismatch | Verify `AWS_OIDC_ROLE_ARN` secret in GitHub matches Terraform output `github_role_arn`. |
 | **Health Check Timeout** | Application took longer than 30s to boot | Increase `HEALTHCHECK_MAX_RETRIES` in `deploy-blue-green.sh` if running on small instance bundles. |
